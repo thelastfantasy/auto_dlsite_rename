@@ -9,6 +9,7 @@ use std::path::Path;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let v = read_directories_from_file("settings.json").expect("读取 settings.json 失败!");
+    let delimiter = delimiter();
     for dir in &v {
         let mut entries = fs::read_dir(dir)?
             .map(|res| res.map(|e| e.path()))
@@ -23,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let output = fut.await?;
             let parent = e.parent().unwrap().to_str().unwrap();
             let ext = e.extension().unwrap().to_str().unwrap();
-            let _r = fs::rename(&e, format!("{parent}\\{output}.{ext}"));
+            let _r = fs::rename(&e, format!("{parent}{delimiter}{output}.{ext}"));
             println!("{opath} =>发现匹配文件，开始重命名...\n{output}.{ext}");
         }
     }
@@ -86,4 +87,14 @@ async fn dlsite_req(id: &str) -> Result<String, Box<dyn Error>> {
         .replace("!", "！");
 
     Ok(filename.to_string())
+}
+
+#[cfg(target_os = "windows")]
+fn delimiter() -> &'static str {
+    "\\"
+}
+
+#[cfg(not(target_os = "windows"))]
+fn delimiter() -> &'static str {
+    "/"
 }
