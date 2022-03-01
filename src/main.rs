@@ -50,7 +50,7 @@ fn read_directories_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<String>, Bo
 }
 
 async fn dlsite_req(id: &str) -> Result<String, Box<dyn Error>> {
-    let id = id.replace("r", "R").replace("j", "J");
+    let id = id.to_uppercase();
     let resp = reqwest::get(format!(
         "https://www.dlsite.com/maniax/work/=/product_id/{id}.html"
     ))
