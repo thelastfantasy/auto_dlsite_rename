@@ -1,4 +1,4 @@
-use regex_macro::regex;
+use lazy_regex::regex;
 use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::error::Error;
@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         entries.sort();
         let entries = entries
             .into_iter()
-            .filter(|e| regex!(r#"^RJ\d+$"#).is_match(e.file_stem().unwrap().to_str().unwrap()));
+            .filter(|e| regex!(r#"^RJ\d+$"#i).is_match(e.file_stem().unwrap().to_str().unwrap()));
         for e in entries {
             let opath = e.display();
             let pid = e.file_stem().unwrap().to_str().unwrap();
@@ -50,6 +50,7 @@ fn read_directories_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<String>, Bo
 }
 
 async fn dlsite_req(id: &str) -> Result<String, Box<dyn Error>> {
+    let id = id.replace("r", "R").replace("j", "J");
     let resp = reqwest::get(format!(
         "https://www.dlsite.com/maniax/work/=/product_id/{id}.html"
     ))
