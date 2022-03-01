@@ -20,7 +20,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .filter(|e| regex!(r#"^RJ\d+$"#).is_match(e.file_stem().unwrap().to_str().unwrap()));
         for e in entries {
             let opath = e.display();
-            let fut = dlsite_req(e.file_stem().unwrap().to_str().unwrap());
+            let pid = e.file_stem().unwrap().to_str().unwrap();
+            let fut = dlsite_req(pid);
             match fut.await {
                 Ok(fut) => {
                     let output = fut;
@@ -30,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("{opath} =>发现匹配文件，开始重命名...\n{output}.{ext}");
                 }
                 Err(e) => {
-                    eprintln!("已跳过：{opath} ，原因：{e}");
+                    eprintln!("已跳过：{opath} ，原因：{pid} {e}");
                     continue;
                 }
             }
