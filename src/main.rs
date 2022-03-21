@@ -107,6 +107,7 @@ async fn dlsite_req(id: &str) -> Result<String, Box<dyn Error>> {
         .replace("<", "＜")
         .replace(">", "＞")
         .replace("|", "｜")
+        .replace("\"", "")
         .replace(":", "：")
         .replace("!", "！");
 
