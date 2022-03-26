@@ -111,7 +111,7 @@ async fn dlsite_req(id: &str) -> Result<String, Box<dyn Error>> {
         .replace(":", "：")
         .replace("!", "！");
 
-    Ok(filename.to_string().trim().to_string())
+    Ok(filename.trim().to_string())
 }
 
 #[cfg(target_os = "windows")]
