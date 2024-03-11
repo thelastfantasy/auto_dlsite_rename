@@ -27,7 +27,7 @@ struct Work {
 }
 
 const RJ_WORK: Work = Work {
-    title_regex_string: r"^RJ\d+",
+    title_regex_string: r#"^RJ\d+""#,
     pid_selector_str: r#".work_right_info"#,
     wname_selector_str: r#"#work_name"#,
     circle_name_selector_str: r#"#work_maker td a"#,
@@ -279,7 +279,7 @@ fn get_page_url(id: &str) -> String {
     {
         page_url = format!("https://www.dlsite.com/pro/work/=/product_id/{id}.html");
     } else {
-        return "未知的作品ID格式！".to_string();
+        return "Invalid_Work_Id".to_string();
     };
 
     page_url
