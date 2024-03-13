@@ -24,6 +24,7 @@ struct Work {
     pid_selector_str: &'static str,
     wname_selector_str: &'static str,
     circle_name_selector_str: &'static str,
+    full_url_pattern: &'static str,
 }
 
 const RJ_WORK: Work = Work {
@@ -31,6 +32,7 @@ const RJ_WORK: Work = Work {
     pid_selector_str: r#".work_right_info"#,
     wname_selector_str: r#"#work_name"#,
     circle_name_selector_str: r#"#work_maker td a"#,
+    full_url_pattern: r#"https://www.dlsite.com/maniax/work/=/product_id/{id}.html"#,
 };
 
 const VJ_WORK: Work = Work {
@@ -38,6 +40,7 @@ const VJ_WORK: Work = Work {
     pid_selector_str: r#".work_right_info"#,
     wname_selector_str: r#"#work_name"#,
     circle_name_selector_str: r#"#work_maker td a"#,
+    full_url_pattern: r#"https://www.dlsite.com/pro/work/=/product_id/{id}.html"#,
 };
 
 #[tokio::main]
@@ -272,12 +275,12 @@ fn get_page_url(id: &str) -> String {
         .unwrap()
         .is_match(&id)
     {
-        page_url = format!("https://www.dlsite.com/maniax/work/=/product_id/{id}.html");
+        page_url = RJ_WORK.full_url_pattern.replace("{id}", &id);
     } else if regex::Regex::new(VJ_WORK.title_regex_string)
         .unwrap()
         .is_match(&id)
     {
-        page_url = format!("https://www.dlsite.com/pro/work/=/product_id/{id}.html");
+        page_url = VJ_WORK.full_url_pattern.replace("{id}", &id);
     } else {
         return "Invalid_Work_Id".to_string();
     };
