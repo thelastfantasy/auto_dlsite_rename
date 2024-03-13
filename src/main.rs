@@ -28,7 +28,7 @@ struct Work {
 }
 
 const RJ_WORK: Work = Work {
-    title_regex_string: r#"^RJ\d+""#,
+    title_regex_string: r#"^RJ\d+$"#,
     pid_selector_str: r#".work_right_info"#,
     wname_selector_str: r#"#work_name"#,
     circle_name_selector_str: r#"#work_maker td a"#,
@@ -36,7 +36,7 @@ const RJ_WORK: Work = Work {
 };
 
 const VJ_WORK: Work = Work {
-    title_regex_string: r"^VJ\d+",
+    title_regex_string: r"^VJ\d+$",
     pid_selector_str: r#".work_right_info"#,
     wname_selector_str: r#"#work_name"#,
     circle_name_selector_str: r#"#work_maker td a"#,
@@ -80,6 +80,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     let v = read_directories_from_file("settings.json").expect("读取 settings.json 失败!");
+    // 使用正则表达式匹配以RJ开头后面跟一个或多个数字
+    let rj_regex = regex::Regex::new(RJ_WORK.title_regex_string).unwrap();
+    let vj_regex = regex::Regex::new(VJ_WORK.title_regex_string).unwrap();
     let delimiter = delimiter();
     for dir in &v {
         let mut entries = fs::read_dir(dir)?
@@ -89,9 +92,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let entries = entries.into_iter().filter(|e| {
             // 获取文件名，不含扩展名
             let file_stem = e.file_stem().unwrap().to_str().unwrap();
-            // 使用正则表达式匹配以RJ开头后面跟一个或多个数字
-            let rj_regex = regex::Regex::new(RJ_WORK.title_regex_string).unwrap();
-            let vj_regex = regex::Regex::new(VJ_WORK.title_regex_string).unwrap();
             // 检查文件名是否匹配正则表达式
             let matches_rj_pattern = rj_regex.is_match(file_stem);
             let matches_vj_pattern = vj_regex.is_match(file_stem);
@@ -275,12 +275,12 @@ fn get_page_url(id: &str) -> String {
         .unwrap()
         .is_match(&id)
     {
-        page_url = RJ_WORK.full_url_pattern.replace("{id}", &id);
+        page_url = RJ_WORK.full_url_pattern.replace(r"{id}", &id);
     } else if regex::Regex::new(VJ_WORK.title_regex_string)
         .unwrap()
         .is_match(&id)
     {
-        page_url = VJ_WORK.full_url_pattern.replace("{id}", &id);
+        page_url = VJ_WORK.full_url_pattern.replace(r"{id}", &id);
     } else {
         return "Invalid_Work_Id".to_string();
     };
