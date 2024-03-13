@@ -11,7 +11,7 @@ use std::io::{self, BufReader, Write};
 use std::path::Path;
 
 #[derive(Parser)]
-#[clap(name = "DLsiteRenamer", version = "0.4.2.1", author = "Jade")]
+#[clap(name = "DLsiteRenamer", version = "0.4.3", author = "Jade")]
 #[clap(about = "本程序将自动读取你的预设目录，并重命名其中DLsite番号文件和文件夹为实际作品标题，部分作品使用了非法的标点符号或者路径长度超出系统限制会重命名失败，请手动重命名", long_about = None)]
 struct Cli {
     /// 仅文件模式开关，默认关闭（处理文件和文件夹）
@@ -92,6 +92,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rj_regex = regex::Regex::new(RJ_WORK.title_regex_string).unwrap();
     let vj_regex = regex::Regex::new(VJ_WORK.title_regex_string).unwrap();
     let bj_regex = regex::Regex::new(BJ_WORK.title_regex_string).unwrap();
+
     let delimiter = delimiter();
     for dir in &v {
         let mut entries = fs::read_dir(dir)?
