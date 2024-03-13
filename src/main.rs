@@ -43,6 +43,14 @@ const VJ_WORK: Work = Work {
     full_url_pattern: r#"https://www.dlsite.com/pro/work/=/product_id/{id}.html"#,
 };
 
+const BJ_WORK: Work = Work {
+    title_regex_string: r"^BJ\d+$",
+    pid_selector_str: r#".work_right_info"#,
+    wname_selector_str: r#"#work_name"#,
+    circle_name_selector_str: r#"#work_maker td a"#,
+    full_url_pattern: r#"https://www.dlsite.com/books/work/=/product_id/{id}.html"#,
+};
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
@@ -83,6 +91,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 使用正则表达式匹配以RJ开头后面跟一个或多个数字
     let rj_regex = regex::Regex::new(RJ_WORK.title_regex_string).unwrap();
     let vj_regex = regex::Regex::new(VJ_WORK.title_regex_string).unwrap();
+    let bj_regex = regex::Regex::new(BJ_WORK.title_regex_string).unwrap();
     let delimiter = delimiter();
     for dir in &v {
         let mut entries = fs::read_dir(dir)?
@@ -95,6 +104,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // 检查文件名是否匹配正则表达式
             let matches_rj_pattern = rj_regex.is_match(file_stem);
             let matches_vj_pattern = vj_regex.is_match(file_stem);
+            let matches_bj_pattern = bj_regex.is_match(file_stem);
             // 检查扩展名是否不以以下扩展名结尾
             let extension = e.extension().and_then(|ext| ext.to_str()).unwrap_or("");
             let disallowed_extensions = vec!["!qt", "!ut", "downloading"];
@@ -107,11 +117,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if cli.file_only {
                 // 仅文件模式开启时，仅包含文件
                 !is_dir
-                    && (matches_rj_pattern || matches_vj_pattern)
+                    && (matches_rj_pattern || matches_vj_pattern || matches_bj_pattern)
                     && not_ends_with_disallowed_extension
             } else {
                 // 仅文件模式关闭时，包含文件和文件夹
-                (matches_rj_pattern || matches_vj_pattern) && not_ends_with_disallowed_extension
+                (matches_rj_pattern || matches_vj_pattern || matches_bj_pattern)
+                    && not_ends_with_disallowed_extension
             }
         });
 
@@ -200,6 +211,13 @@ async fn dlsite_req(id: &str) -> Result<String, Box<dyn Error>> {
         workname_selector = Selector::parse(VJ_WORK.wname_selector_str).unwrap();
         pid_selector = Selector::parse(VJ_WORK.pid_selector_str).unwrap();
         circle_name_selector = Selector::parse(VJ_WORK.circle_name_selector_str).unwrap();
+    } else if regex::Regex::new(BJ_WORK.title_regex_string)
+        .unwrap()
+        .is_match(&id)
+    {
+        workname_selector = Selector::parse(BJ_WORK.wname_selector_str).unwrap();
+        pid_selector = Selector::parse(BJ_WORK.pid_selector_str).unwrap();
+        circle_name_selector = Selector::parse(BJ_WORK.circle_name_selector_str).unwrap();
     } else {
         return Err(Box::new(io::Error::new(
             io::ErrorKind::Other,
@@ -281,6 +299,11 @@ fn get_page_url(id: &str) -> String {
         .is_match(&id)
     {
         page_url = VJ_WORK.full_url_pattern.replace(r"{id}", &id);
+    } else if regex::Regex::new(BJ_WORK.title_regex_string)
+        .unwrap()
+        .is_match(&id)
+    {
+        page_url = BJ_WORK.full_url_pattern.replace(r"{id}", &id);
     } else {
         return "Invalid_Work_Id".to_string();
     };
