@@ -21,6 +21,7 @@ struct Work {
     title_regex_string: &'static str,
     pid_selector_str: &'static str,
     wname_selector_str: &'static str,
+    /// TODO: 考虑换成XPath选择器，相关crate: Skyscraper
     circle_name_selector_str: &'static str,
     full_url_pattern: &'static str,
 }
@@ -45,7 +46,9 @@ const BJ_WORK: Work = Work {
     title_regex_string: r"^BJ\d+$",
     pid_selector_str: r#".work_right_info"#,
     wname_selector_str: r#"#work_name"#,
-    circle_name_selector_str: r#"#work_maker td a"#,
+    // 如果使用Skyscraper的话，相应XPath选择器
+    // 应该是：//th[contains(text(), '著者')]/following-sibling::td[1]
+    circle_name_selector_str: r#"#work_maker > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2) > a:nth-child(1)"#,
     full_url_pattern: r#"https://www.dlsite.com/books/work/=/product_id/{id}.html"#,
 };
 
@@ -203,7 +206,7 @@ async fn dlsite_req(id: &str) -> Result<String, Box<dyn Error>> {
     let text = resp.text().await?;
 
     let mut filename: HashMap<&str, String> = HashMap::new();
-    let document = Html::parse_document(&text);
+    let document = Html::parse_document(&text); // TODO: 如果使用Skyscraper，这里需要另外创建一个Skyscraper专用的Document
 
     for element in document.select(&workname_selector) {
         let wname = element.text().collect::<Vec<_>>().join("");
