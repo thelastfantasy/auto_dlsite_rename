@@ -1,17 +1,15 @@
 #![allow(non_snake_case)]
-use chrono::Local;
 use clap::Parser;
-use env_logger::Builder as LoggerBuilder;
 use log::{error, info};
 use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::{self, File};
-use std::io::{self, BufReader, Write};
+use std::io::{self, BufReader};
 use std::path::Path;
 
 #[derive(Parser)]
-#[clap(name = "DLsiteRenamer", version = "0.4.3", author = "Jade")]
+#[clap(name = "DLsiteRenamer", version = "0.4.3.1", author = "Jade")]
 #[clap(about = "本程序将自动读取你的预设目录，并重命名其中DLsite番号文件和文件夹为实际作品标题，部分作品使用了非法的标点符号或者路径长度超出系统限制会重命名失败，请手动重命名", long_about = None)]
 struct Cli {
     /// 仅文件模式开关，默认关闭（处理文件和文件夹）
@@ -39,7 +37,7 @@ const VJ_WORK: Work = Work {
     title_regex_string: r"^VJ\d+$",
     pid_selector_str: r#".work_right_info"#,
     wname_selector_str: r#"#work_name"#,
-    circle_name_selector_str: r#"#work_maker td a"#,
+    circle_name_selector_str: r#"#work_maker td .maker_name a"#,
     full_url_pattern: r#"https://www.dlsite.com/pro/work/=/product_id/{id}.html"#,
 };
 
@@ -55,37 +53,7 @@ const BJ_WORK: Work = Work {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
-    LoggerBuilder::new()
-        .format(|buf, record| {
-            let level_style = buf.default_level_style(record.level());
-            let reset = level_style.render_reset();
-            let level_style = level_style.render();
-
-            // let error_style = buf.default_level_style(log::Level::Error);
-            // let error_reset = error_style.render_reset();
-            // let error_style = error_style.render();
-
-            let now = Local::now();
-
-            let message = format!("{}", record.args());
-
-            if message.trim().is_empty() {
-                // 如果消息体为空，则输出一个空行或自定义的空消息格式
-                writeln!(buf)
-            } else {
-                // 否则，按常规方式输出日志消息
-                writeln!(
-                    buf,
-                    "{} {} {level_style}{}{reset}  - {}",
-                    now.format("%Y-%m-%d"),
-                    now.format("%H:%M:%S"),
-                    format!("[{}]", record.level()),
-                    message
-                )
-            }
-        })
-        .filter_level(log::LevelFilter::Info)
-        .init();
+    my_logger::init();
 
     let v = read_directories_from_file("settings.json").expect("读取 settings.json 失败!");
     // 使用正则表达式匹配以RJ开头后面跟一个或多个数字
@@ -129,6 +97,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         for e in entries {
             let opath = e.display();
+            if cfg!(debug_assertions) {
+                dbg!(&opath);
+            }
             let pid = e.file_stem().unwrap().to_str().unwrap();
             let fut = dlsite_req(pid);
             let page_url = get_page_url(pid);

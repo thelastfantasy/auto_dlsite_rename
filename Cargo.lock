@@ -8,9 +8,9 @@ version = "0.1.2"
 dependencies = [
  "chrono",
  "clap",
- "env_logger",
  "lazy_static",
  "log",
+ "my_logger",
  "regex",
  "reqwest",
  "scraper",
@@ -773,6 +773,16 @@ dependencies = [
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "my_logger"
+version = "0.1.2"
+source = "git+https://github.com/thelastfantasy/my_logger.git#a60906b80b316d5891f07d112572894948d8eb7e"
+dependencies = [
+ "chrono",
+ "env_logger",
+ "log",
 ]
 
 [[package]]
