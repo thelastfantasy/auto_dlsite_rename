@@ -105,6 +105,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if !filtered_entries.is_empty() {
             match_found_flag = true;
+        } else {
             continue;
         }
 
