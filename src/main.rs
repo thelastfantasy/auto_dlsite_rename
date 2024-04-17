@@ -64,41 +64,51 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let vj_regex = regex::Regex::new(VJ_WORK.title_regex_string).unwrap();
     let bj_regex = regex::Regex::new(BJ_WORK.title_regex_string).unwrap();
 
+    let mut match_found_flag = false;
+
     let delimiter = delimiter();
     for dir in &v {
         let mut entries = fs::read_dir(dir)?
             .map(|res| res.map(|e| e.path()))
             .collect::<Result<Vec<_>, io::Error>>()?;
         entries.sort();
-        let entries = entries.into_iter().filter(|e| {
-            // 获取文件名，不含扩展名
-            let file_stem = e.file_stem().unwrap().to_str().unwrap();
-            // 检查文件名是否匹配正则表达式
-            let matches_rj_pattern = rj_regex.is_match(file_stem);
-            let matches_vj_pattern = vj_regex.is_match(file_stem);
-            let matches_bj_pattern = bj_regex.is_match(file_stem);
-            // 检查扩展名是否不以以下扩展名结尾
-            let extension = e.extension().and_then(|ext| ext.to_str()).unwrap_or("");
-            let disallowed_extensions = vec!["!qt", "!ut", "downloading"];
-            let not_ends_with_disallowed_extension = !disallowed_extensions
-                .iter()
-                .any(|disallowed_extension| extension == *disallowed_extension);
-            // 检查是否是文件夹
-            let is_dir = e.is_dir();
+        let filtered_entries: Vec<_> = entries
+            .into_iter()
+            .filter(|e| {
+                // 获取文件名，不含扩展名
+                let file_stem = e.file_stem().unwrap().to_str().unwrap();
+                // 检查文件名是否匹配正则表达式
+                let matches_rj_pattern = rj_regex.is_match(file_stem);
+                let matches_vj_pattern = vj_regex.is_match(file_stem);
+                let matches_bj_pattern = bj_regex.is_match(file_stem);
+                // 检查扩展名是否不以以下扩展名结尾
+                let extension = e.extension().and_then(|ext| ext.to_str()).unwrap_or("");
+                let disallowed_extensions = vec!["!qt", "!ut", "downloading"];
+                let not_ends_with_disallowed_extension = !disallowed_extensions
+                    .iter()
+                    .any(|disallowed_extension| extension == *disallowed_extension);
+                // 检查是否是文件夹
+                let is_dir = e.is_dir();
 
-            if cli.file_only {
-                // 仅文件模式开启时，仅包含文件
-                !is_dir
-                    && (matches_rj_pattern || matches_vj_pattern || matches_bj_pattern)
-                    && not_ends_with_disallowed_extension
-            } else {
-                // 仅文件模式关闭时，包含文件和文件夹
-                (matches_rj_pattern || matches_vj_pattern || matches_bj_pattern)
-                    && not_ends_with_disallowed_extension
-            }
-        });
+                if cli.file_only {
+                    // 仅文件模式开启时，仅包含文件
+                    !is_dir
+                        && (matches_rj_pattern || matches_vj_pattern || matches_bj_pattern)
+                        && not_ends_with_disallowed_extension
+                } else {
+                    // 仅文件模式关闭时，包含文件和文件夹
+                    (matches_rj_pattern || matches_vj_pattern || matches_bj_pattern)
+                        && not_ends_with_disallowed_extension
+                }
+            })
+            .collect();
 
-        for e in entries {
+        if !filtered_entries.is_empty() {
+            match_found_flag = true;
+            continue;
+        }
+
+        for e in filtered_entries {
             let opath = e.display();
             if cfg!(debug_assertions) {
                 dbg!(&opath);
@@ -152,6 +162,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
+
+    if !match_found_flag {
+        info!("未发现任何匹配项！");
+    }
+
     Ok(())
 }
 
