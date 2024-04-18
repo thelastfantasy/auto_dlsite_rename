@@ -777,8 +777,8 @@ dependencies = [
 
 [[package]]
 name = "my_logger"
-version = "0.1.3"
-source = "git+https://github.com/thelastfantasy/my_logger.git#cc39463774bc8424b1003f2bada32abf33cc53d4"
+version = "0.1.4"
+source = "git+https://github.com/thelastfantasy/my_logger.git#270a9dbc0aaac9deb1d8b789f39a4689dc18bf8a"
 dependencies = [
  "chrono",
  "env_logger",
