@@ -68,10 +68,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let delimiter = delimiter();
     for dir in &v {
-        let mut entries = fs::read_dir(dir)?
-            .map(|res| res.map(|e| e.path()))
-            .collect::<Result<Vec<_>, io::Error>>()?;
+        let entries_result = fs::read_dir(dir);
+
+        let mut entries: Vec<_> = match entries_result {
+            Ok(entries) => entries.filter_map(Result::ok).map(|e| e.path()).collect(),
+            Err(e) => {
+                error!("读取目录失败：{dir}，错误：{}", e);
+                continue; // 在这里使用continue，跳过当前迭代
+            }
+        };
+
+        if entries.is_empty() {
+            error!("读取目录失败：{dir}，请检查目录是否存在或者是否有权限访问！");
+            continue;
+        }
+
         entries.sort();
+
         let filtered_entries: Vec<_> = entries
             .into_iter()
             .filter(|e| {
