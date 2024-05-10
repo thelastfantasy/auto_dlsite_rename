@@ -9,7 +9,7 @@ use std::io::{self, BufReader};
 use std::path::Path;
 
 #[derive(Parser)]
-#[clap(name = "DLsiteRenamer", version = "0.4.3.1", author = "Jade")]
+#[clap(name = "DLsiteRenamer", version = "0.4.4", author = "Jade")]
 #[clap(about = "本程序将自动读取你的预设目录，并重命名其中DLsite番号文件和文件夹为实际作品标题，部分作品使用了非法的标点符号或者路径长度超出系统限制会重命名失败，请手动重命名", long_about = None)]
 struct Cli {
     /// 仅文件模式开关，默认关闭（处理文件和文件夹）
@@ -77,11 +77,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 continue; // 在这里使用continue，跳过当前迭代
             }
         };
-
-        if entries.is_empty() {
-            error!("读取目录失败：{dir}，请检查目录是否存在或者是否有权限访问！");
-            continue;
-        }
 
         entries.sort();
 
